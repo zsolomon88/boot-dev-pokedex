@@ -1,7 +1,6 @@
 package pokecache
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -51,10 +50,9 @@ func (c *Cache) reapLoop() {
 	ticker := time.NewTicker(c.ttl)
 
 	for range ticker.C {
-		fmt.Println("Cleaning up cache")
 		c.mux.Lock()
 		for key := range c.entry {
-			if time.Since(c.entry[key].createdAt) > c.ttl {
+			if time.Since(c.entry[key].createdAt) >= c.ttl {
 				delete(c.entry, key)
 			}
 		}

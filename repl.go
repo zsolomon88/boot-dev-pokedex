@@ -10,6 +10,7 @@ import (
 )
 
 type config struct {
+	pokedex 		map[string]pokeapi.PokeInfo
 	pokeapiClient	pokeapi.Client
 	nextLocationUrl *string
 	prevLocationUrl *string
@@ -36,7 +37,15 @@ func commandLineStart(cfg *config) {
 				fmt.Printf("Command %s not found\n", command)
 				continue
 			}
-			cmdError := commandList[command].callback(cfg)
+			if commandList[command].args != len(words) {
+				fmt.Printf("Invalid arguments, %s expects %d args\n", command, commandList[command].args)
+				continue
+			}
+			cmdArgs := []string{}
+			for i := 1; i < len(words); i++ {
+				cmdArgs = append(cmdArgs, words[i])
+			}
+			cmdError := commandList[command].callback(cfg, cmdArgs...)
 			if cmdError != nil {
 				fmt.Println(cmdError.Error())
 			}
@@ -53,7 +62,8 @@ func cleanInput(text string) []string {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config, ...string) error
+	args		int
 }
 
 func getCommandsList() map[string]cliCommand {
@@ -62,21 +72,55 @@ func getCommandsList() map[string]cliCommand {
 			name:        "help",
 			description: "Displays a help message",
 			callback:    commandHelp,
+			args:		 1,
 		},
 		"exit": {
 			name:        "exit",
 			description: "Exit the Pokedex",
 			callback:    commandExit,
+			args:		 1,
 		},
 		"map": {
 			name:        "map",
 			description: "Obtain the next list of locations",
 			callback:    commandMap,
+			args:		 1,
 		},
 		"mapb": {
 			name:        "mapb",
 			description: "Obtain the previous list of locations",
 			callback:    commandMapB,
+			args:		 1,
+		},
+		"explore": {
+			name:        "explore",
+			description: "Explore a given location",
+			callback:    commandExplore,
+			args: 		 2,
+		},
+		"info": {
+			name:        "info",
+			description: "Obtain info about a Pokemon",
+			callback:    commandInfo,
+			args: 		 2,
+		},
+		"catch": {
+			name:        "catch",
+			description: "Catch a Pokemon",
+			callback:    commandCatch,
+			args: 		 2,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: "Inspect a Pokemon",
+			callback:    commandInspect,
+			args: 		 2,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "List your Pokedex",
+			callback:    commandPokedex,
+			args: 		 1,
 		},
 	}
 }
