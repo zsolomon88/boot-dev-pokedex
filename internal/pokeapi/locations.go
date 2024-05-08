@@ -22,6 +22,17 @@ func (c *Client) GetPokeLocations(pageUrl *string) (PokeLocs, error) {
 	if pageUrl != nil {
 		url = *pageUrl
 	}
+
+	if val, ok := c.cache.Get(url); ok {
+		locs := PokeLocs{}
+		jsonErr := json.Unmarshal(val, &locs)
+		if jsonErr != nil {
+			return PokeLocs{}, jsonErr
+		}
+		fmt.Println("Cached result: ")
+		return locs, nil
+	}
+
 	res, err := c.httpClient.Get(url)
 
 	if err != nil {
@@ -32,7 +43,7 @@ func (c *Client) GetPokeLocations(pageUrl *string) (PokeLocs, error) {
 
 	res.Body.Close()
 	if res.StatusCode > 299 {
-		return PokeLocs{}, fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+		return PokeLocs{}, fmt.Errorf("response failed with status code: %d and\nbody: %s", res.StatusCode, body)
 	}
 
 	if err != nil {
@@ -44,5 +55,7 @@ func (c *Client) GetPokeLocations(pageUrl *string) (PokeLocs, error) {
 	if jsonErr != nil {
 		return PokeLocs{}, err
 	}
+
+	c.cache.Add(url, body)
 	return locs, nil
 }

@@ -20,13 +20,16 @@ func commandLineStart(cfg *config) {
 	for {
 		fmt.Printf("PokeDex> ")
 		scanStatus := inputScanner.Scan()
-
 		if !scanStatus {
 			break
 		}
 
 		if scanStatus {
-			command := cleanInput(inputScanner.Text())[0]
+			words := cleanInput(inputScanner.Text())
+			if len(words) == 0 {
+				continue
+			}
+			command := words[0]
 			commandList := getCommandsList()
 
 			if _, ok := commandList[command]; !ok {
